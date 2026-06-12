@@ -1,0 +1,102 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.7.5",
+  "resource_changes": [
+    {
+      "address": "aws_route53_record.noop",
+      "mode": "managed",
+      "type": "aws_route53_record",
+      "name": "noop",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "fqdn": "www.staging.example.com",
+          "id": "Z0123456789ABCDEFGHIJ_www.staging.example.com_A",
+          "name": "www.staging.example.com",
+          "records": ["203.0.113.10"],
+          "ttl": 300,
+          "type": "A",
+          "zone_id": "Z0123456789ABCDEFGHIJ"
+        },
+        "after": {
+          "name": "WWW.Staging.Example.COM.",
+          "records": ["203.0.113.10"],
+          "ttl": 300,
+          "type": "A",
+          "zone_id": "Z0123456789ABCDEFGHIJ"
+        },
+        "after_unknown": {
+          "fqdn": true,
+          "id": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_route53_record.wildcard_noop",
+      "mode": "managed",
+      "type": "aws_route53_record",
+      "name": "wildcard_noop",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "fqdn": "\\052.apps.example.com",
+          "id": "Z0123456789ABCDEFGHIJ_\\052.apps.example.com_CNAME",
+          "name": "\\052.apps.example.com",
+          "records": ["lb.example.com"],
+          "ttl": 60,
+          "type": "CNAME",
+          "zone_id": "Z0123456789ABCDEFGHIJ"
+        },
+        "after": {
+          "name": "*.apps.example.com",
+          "records": ["lb.example.com"],
+          "ttl": 60,
+          "type": "CNAME",
+          "zone_id": "Z0123456789ABCDEFGHIJ"
+        },
+        "after_unknown": {
+          "fqdn": true,
+          "id": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_route53_record.real",
+      "mode": "managed",
+      "type": "aws_route53_record",
+      "name": "real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "fqdn": "www.staging.example.com",
+          "id": "Z0123456789ABCDEFGHIJ_www.staging.example.com_A",
+          "name": "www.staging.example.com",
+          "records": ["203.0.113.10"],
+          "ttl": 300,
+          "type": "A",
+          "zone_id": "Z0123456789ABCDEFGHIJ"
+        },
+        "after": {
+          "name": "api.staging.example.com",
+          "records": ["203.0.113.10"],
+          "ttl": 300,
+          "type": "A",
+          "zone_id": "Z0123456789ABCDEFGHIJ"
+        },
+        "after_unknown": {
+          "fqdn": true,
+          "id": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

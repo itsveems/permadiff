@@ -1,0 +1,513 @@
+# permadiff perma-diff pattern catalog (AWS provider, v1)
+#
+# Each pattern teaches the classifier that a particular (resource type,
+# attribute) diff may be provider/API normalisation rather than a real change.
+# A pattern NEVER suppresses anything by itself: the named canonicalizer still
+# has to prove before == after, conservatively, before a change is called a
+# no-op.
+#
+# Entry fields:
+#   id              unique slug
+#   title           short human name
+#   kind            "canonical" (default) — run `canonicalizer` on before/after
+#                   "computed"            — matches attributes that flip to
+#                                           "(known after apply)"; no values to
+#                                           compare, so confidence is capped at
+#                                           what the entry declares
+#   match           resource_types / attributes — exact names or globs (* ?)
+#   canonicalizer   one of: aws_policy_json, generic_json, set_list, sg_rules,
+#                   scalar_coercion, dns_name, empty_collection,
+#                   ecs_container_definitions   (canonical kind only)
+#   canonicalizer_opts  strategy-specific options
+#   confidence      high | medium — only "high" findings count as noise in the
+#                   summary; "medium" findings stay listed with the real
+#                   changes, annotated as possible noise
+#   why             plain-English explanation shown with each finding
+#   fix             summary + optional hcl_before/hcl_after snippet + optional
+#                   warning (warnings are mandatory for ignore_changes advice)
+#   docs            reference links
+#
+# Order matters. Canonical patterns are tried in file order and the first one
+# whose canonicalizer PROVES before == after wins; a pattern that matches but
+# cannot prove equality does not block later patterns from trying. Computed
+# patterns are first-match-wins. Keep specific entries above generic
+# fallbacks either way.
+
+version: 1
+
+patterns:
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. IAM policy documents
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: iam-policy-json
+    title: IAM policy JSON normalisation
+    match:
+      resource_types:
+        - aws_iam_policy
+        - aws_iam_role_policy
+        - aws_iam_group_policy
+        - aws_iam_user_policy
+      attributes: [policy]
+    canonicalizer: aws_policy_json
+    confidence: high
+    why: >-
+      AWS stores IAM policy documents in its own normalised form: object keys
+      reordered, whitespace stripped, single-element arrays and scalars
+      interchanged, and statements reordered. None of that changes what the
+      policy allows or denies — IAM evaluates statements as an unordered set
+      and action names case-insensitively.
+    fix:
+      summary: >-
+        Author the policy as HCL via jsonencode() or an aws_iam_policy_document
+        data source instead of a hand-written JSON string. Terraform then
+        compares structure rather than text. If a diff persists, align your
+        HCL with the stored form shown by --explain (e.g. write Action as a
+        list when AWS stores a list).
+      hcl_before: |
+        policy = <<EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {"Action": "s3:GetObject", "Effect": "Allow", "Resource": "arn:aws:s3:::my-bucket/*"}
+          ]
+        }
+        EOF
+      hcl_after: |
+        policy = jsonencode({
+          Version = "2012-10-17"
+          Statement = [{
+            Action   = "s3:GetObject"
+            Effect   = "Allow"
+            Resource = "arn:aws:s3:::my-bucket/*"
+          }]
+        })
+    docs:
+      - https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_grammar.html
+      - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document
+
+  - id: iam-assume-role-policy
+    title: IAM trust (assume-role) policy normalisation
+    match:
+      resource_types: [aws_iam_role]
+      attributes: [assume_role_policy]
+    canonicalizer: aws_policy_json
+    confidence: high
+    why: >-
+      The role's trust policy is an IAM policy document; AWS rewrites it into
+      canonical form (key order, statement order, scalar-vs-list, bare account
+      IDs expanded to root ARNs). The trust relationship itself is unchanged.
+    fix:
+      summary: >-
+        Use jsonencode() or aws_iam_policy_document for assume_role_policy.
+        Write AWS principals as full root ARNs
+        ("arn:aws:iam::123456789012:root"), which is the form AWS stores.
+      hcl_before: |
+        assume_role_policy = file("trust.json")
+      hcl_after: |
+        assume_role_policy = jsonencode({
+          Version = "2012-10-17"
+          Statement = [{
+            Effect    = "Allow"
+            Action    = "sts:AssumeRole"
+            Principal = { Service = "ec2.amazonaws.com" }
+          }]
+        })
+    docs:
+      - https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. S3 bucket policy
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: s3-bucket-policy-json
+    title: S3 bucket policy JSON normalisation
+    match:
+      resource_types: [aws_s3_bucket_policy, aws_s3_bucket]
+      attributes: [policy]
+    canonicalizer: aws_policy_json
+    confidence: high
+    why: >-
+      S3 stores the bucket policy in canonical JSON: reordered keys and
+      statements, "Principal": "*" and {"AWS": "*"} interchanged, scalars and
+      one-element lists interchanged. Access semantics are identical.
+    fix:
+      summary: >-
+        Define the policy with jsonencode() or aws_iam_policy_document. If S3
+        keeps rewriting a principal, write it the way S3 stores it (e.g.
+        "Principal": "*" rather than {"AWS": "*"}); --explain shows the stored
+        form.
+      hcl_before: |
+        policy = file("bucket-policy.json")
+      hcl_after: |
+        policy = jsonencode({
+          Version = "2012-10-17"
+          Statement = [{
+            Sid       = "AllowCloudFrontRead"
+            Effect    = "Allow"
+            Principal = { Service = "cloudfront.amazonaws.com" }
+            Action    = "s3:GetObject"
+            Resource  = "arn:aws:s3:::my-bucket/*"
+          }]
+        })
+    docs:
+      - https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-policies.html
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. KMS key policy
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: kms-key-policy-json
+    title: KMS key policy JSON normalisation
+    match:
+      resource_types: [aws_kms_key, aws_kms_replica_key, aws_kms_external_key]
+      attributes: [policy]
+    canonicalizer: aws_policy_json
+    confidence: high
+    why: >-
+      KMS canonicalises key policies aggressively: bare account IDs in
+      Principal.AWS become "arn:aws:iam::<account>:root", keys and statements
+      are reordered, and scalar/list forms are interchanged. The grants are
+      unchanged.
+    fix:
+      summary: >-
+        Use jsonencode() and write principals as full root ARNs — the form KMS
+        stores. Avoid bare account IDs in Principal.AWS.
+      hcl_before: |
+        # KMS rewrites this principal on every read:
+        Principal = { AWS = "111122223333" }
+      hcl_after: |
+        Principal = { AWS = "arn:aws:iam::111122223333:root" }
+    docs:
+      - https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-overview.html
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Other JSON resource policies that share IAM grammar
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: resource-policy-json
+    title: Resource policy JSON normalisation
+    match:
+      resource_types:
+        - aws_sqs_queue
+        - aws_sqs_queue_policy
+        - aws_sns_topic
+        - aws_sns_topic_policy
+        - aws_ecr_repository_policy
+        - aws_secretsmanager_secret_policy
+        - aws_cloudwatch_log_resource_policy
+      attributes: [policy, policy_document]
+    canonicalizer: aws_policy_json
+    confidence: high
+    why: >-
+      These services store their resource policies using the IAM policy
+      grammar and normalise them the same way: key order, statement order,
+      whitespace, and scalar-vs-list forms all get rewritten without changing
+      what the policy permits.
+    fix:
+      summary: >-
+        Use jsonencode() or aws_iam_policy_document instead of a raw JSON
+        string, and align scalar-vs-list forms with the stored document shown
+        by --explain.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4. Security group rules
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: sg-inline-rules
+    title: Security group rule set ordering
+    match:
+      resource_types: [aws_security_group, aws_default_security_group]
+      attributes: [ingress, egress]
+    canonicalizer: sg_rules
+    confidence: high
+    why: >-
+      ingress/egress rules are a set: AWS neither stores nor honours any rule
+      order, and the inner cidr_blocks/security_groups lists are sets too. A
+      plan that only reorders rules changes nothing. (A null description and
+      "" are also equivalent — the API returns "" for unset.)
+    fix:
+      summary: >-
+        Rule-order churn usually means inline rules are fighting drift or
+        being mixed with standalone rule resources. Prefer one
+        aws_vpc_security_group_ingress_rule / _egress_rule resource per rule —
+        they have stable identities and update in place — and never mix inline
+        ingress/egress blocks with standalone rule resources on the same
+        group.
+      warning: >-
+        Note: editing an inline rule's description recreates that rule (the
+        description is part of the rule's identity), briefly dropping it.
+        Standalone rule resources update descriptions in place.
+    docs:
+      - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+      - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_ingress_rule
+
+  - id: sg-rule-cidr-sets
+    title: Security group rule CIDR/SG list ordering
+    match:
+      resource_types: [aws_security_group_rule]
+      attributes: [cidr_blocks, ipv6_cidr_blocks, prefix_list_ids]
+    canonicalizer: set_list
+    confidence: high
+    why: >-
+      The CIDR and prefix-list collections on a rule are sets; AWS does not
+      preserve order. Same members, different order — nothing changes.
+    fix:
+      summary: >-
+        Reorder the list in your config to match the stored order shown by
+        --explain, or sort the list at source (e.g. sort() in HCL) so it stays
+        stable.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 5. tags / tags_all
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: tags-empty-vs-null
+    title: Empty tags map vs null
+    match:
+      resource_types: ["aws_*"]
+      attributes: [tags, tags_all]
+    canonicalizer: empty_collection
+    confidence: high
+    why: >-
+      `tags = {}` and no tags attribute at all are the same thing in AWS —
+      there are no tags either way. Provider versions disagree about which
+      form to store, producing this diff.
+    fix:
+      summary: >-
+        Make the config match: either remove the empty `tags = {}` argument
+        entirely, or keep it consistently on every resource (and out of
+        modules that default it to null).
+      hcl_before: |
+        tags = {}
+      hcl_after: |
+        # (omit the tags argument entirely)
+    docs:
+      - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging
+
+  - id: tags-all-computed-churn
+    title: tags_all churn from provider default_tags
+    kind: computed
+    match:
+      resource_types: ["aws_*"]
+      attributes: [tags_all]
+    confidence: medium
+    why: >-
+      tags_all is computed by merging the resource's tags with the provider's
+      default_tags. Several provider versions re-plan it as "(known after
+      apply)" on every run even when nothing changed — a long-standing
+      default_tags quirk. Medium confidence only: from one plan we cannot
+      prove the provider's default_tags block didn't actually change.
+    fix:
+      summary: >-
+        Upgrade hashicorp/aws — most default_tags perpetual-diff bugs are
+        fixed in v5+. Also remove any key that appears in BOTH the resource's
+        tags and default_tags (duplicate keys are a known churn trigger). If
+        the churn is provider-version-irreducible, a narrowly scoped
+        lifecycle { ignore_changes = [tags_all] } silences it.
+      warning: >-
+        ignore_changes = [tags_all] also masks REAL future tag changes coming
+        from default_tags on this resource. Prefer the provider upgrade; use
+        ignore_changes only as a last resort, and never ignore `tags` itself.
+    docs:
+      - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 6. ECS task definitions
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: ecs-container-definitions
+    title: ECS container_definitions normalisation
+    match:
+      resource_types: [aws_ecs_task_definition]
+      attributes: [container_definitions]
+    canonicalizer: ecs_container_definitions
+    confidence: high
+    why: >-
+      The ECS API rewrites container definitions on registration: it reorders
+      fields, injects defaults (cpu = 0, essential = true, empty arrays for
+      mountPoints/portMappings/volumesFrom/…), stringifies environment values
+      (80 becomes "80"), and drops "protocol": "tcp" round-trips. The
+      registered task definition is functionally identical.
+    fix:
+      summary: >-
+        Build container_definitions with jsonencode(), quote every environment
+        value as a string, and omit fields you don't set (don't write cpu = 0
+        or empty lists — the API adds them back). --explain shows the exact
+        canonical form to match.
+      hcl_before: |
+        container_definitions = jsonencode([{
+          name        = "app"
+          image       = "repo/app:1.2.3"
+          environment = [{ name = "PORT", value = 8080 }]
+        }])
+      hcl_after: |
+        container_definitions = jsonencode([{
+          name        = "app"
+          image       = "repo/app:1.2.3"
+          environment = [{ name = "PORT", value = "8080" }]  # value must be a string
+        }])
+      warning: >-
+        Do NOT put container_definitions in ignore_changes to silence this —
+        that would mask real image and configuration changes, which is exactly
+        the drift this tool exists to keep visible.
+    docs:
+      - https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html
+
+  - id: ecs-task-definition-computed
+    title: ECS task definition computed fields
+    kind: computed
+    match:
+      resource_types: [aws_ecs_task_definition]
+      attributes: [revision, arn, arn_without_revision]
+    confidence: high
+    why: >-
+      revision and arn are computed by ECS when a task definition is
+      (re)registered. They flip to "(known after apply)" whenever any update
+      is planned; they are a consequence of the plan, not an independent
+      change.
+    fix:
+      summary: >-
+        Nothing to fix here — resolve whatever attribute is driving the
+        update (often container_definitions formatting, see that finding) and
+        these disappear with it.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 8. Route 53 name normalisation
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: route53-name-normalization
+    title: Route 53 name normalisation
+    match:
+      resource_types: [aws_route53_record, aws_route53_zone]
+      attributes: [name, fqdn]
+    canonicalizer: dns_name
+    confidence: high
+    why: >-
+      DNS names are case-insensitive and Route 53 stores them normalised:
+      lowercase, no trailing dot (the provider strips it), and wildcard
+      labels as the octal escape \052. The record resolves identically.
+    fix:
+      summary: >-
+        Write the name exactly as Route 53 stores it: lowercase, without the
+        trailing dot. --explain shows the normalised form.
+      hcl_before: |
+        name = "WWW.Example.COM."
+      hcl_after: |
+        name = "www.example.com"
+    docs:
+      - https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/DomainNameFormat.html
+
+  - id: route53-record-computed
+    title: Route 53 derived identifiers
+    kind: computed
+    match:
+      resource_types: [aws_route53_record]
+      attributes: [fqdn, id]
+    confidence: high
+    why: >-
+      fqdn and id are derived from the record name; whenever the name finding
+      above is just normalisation, these follow along as "(known after
+      apply)" without any independent change.
+    fix:
+      summary: >-
+        Nothing to fix — resolve the name normalisation finding and these
+        disappear with it.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Set-semantic list attributes that appear across many AWS resources
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: aws-set-semantic-lists
+    title: Set-semantic list reordered
+    match:
+      resource_types: ["aws_*"]
+      attributes:
+        - security_groups
+        - vpc_security_group_ids
+        - subnet_ids
+        - subnets
+        - availability_zones
+    canonicalizer: set_list
+    confidence: high
+    why: >-
+      This attribute is a set in AWS: membership matters, order does not.
+      Same members in a different order change nothing.
+    fix:
+      summary: >-
+        Match your config's list order to the stored order shown by
+        --explain, or wrap the value in sort() so the order is stable.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 9. Generic computed-field churn (keep below specific computed entries)
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: generic-computed-churn
+    title: Computed identifier flips to (known after apply)
+    kind: computed
+    match:
+      resource_types: ["aws_*"]
+      attributes: [arn, id, unique_id]
+    confidence: medium
+    why: >-
+      Purely computed identifiers sometimes flip to "(known after apply)"
+      after provider upgrades or refresh quirks, with no input changing.
+      Medium confidence: the flip itself proves nothing changed only if no
+      other attribute really changed.
+    fix:
+      summary: >-
+        Run `terraform apply -refresh-only` (or `terraform plan -refresh-only`
+        first) to reconcile state, and check whether a provider upgrade
+        changed how this attribute is computed. ignore_changes is not
+        applicable to computed-only attributes.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 7 & 10. Generic fallbacks — MUST stay last
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: generic-type-coercion
+    title: String/number/bool type coercion
+    match:
+      resource_types: ["aws_*"]
+      attributes: ["*"]
+    canonicalizer: scalar_coercion
+    confidence: high
+    why: >-
+      The value is identical; only its type differs ("80" vs 80, "true" vs
+      true). The provider or API coerced the type while round-tripping.
+    fix:
+      summary: >-
+        Change the literal in your config to the type the provider stores —
+        drop the quotes for a number/bool, or add them for a string. The
+        stored type is the `before` side shown by --explain.
+      hcl_before: |
+        port = "80"
+      hcl_after: |
+        port = 80
+
+  - id: generic-json-attribute
+    title: JSON document formatting
+    match:
+      resource_types: ["aws_*"]
+      # Curated allowlist: ONLY attributes where the service parses and
+      # stores the document, so its formatting is provably cosmetic. Never
+      # add verbatim-bytes attributes here (user_data, aws_ssm_parameter
+      # value, aws_s3_object content, secret strings, …): those bytes are
+      # delivered as-is to a machine, so re-formatted JSON IS a real change.
+      # Extend via --catalog for JSON-document attributes you trust.
+      attributes:
+        - definition        # aws_sfn_state_machine
+        - template_body     # aws_cloudformation_stack
+        - dashboard_body    # aws_cloudwatch_dashboard
+        - event_pattern     # aws_cloudwatch_event_rule
+    canonicalizer: generic_json
+    confidence: high
+    why: >-
+      The service parses and re-serialises this JSON document, so only its
+      structure matters — and both sides decode to exactly the same
+      structure; only whitespace and object key order differ. (Array order is
+      still respected — a reordered array is treated as a real change here,
+      because we can't know an arbitrary array is a set.)
+    fix:
+      summary: >-
+        Generate the value with jsonencode() instead of a heredoc or file()
+        string so Terraform always produces the same canonical text.
+      hcl_before: |
+        definition = <<EOF
+        { "Comment" : "state machine",
+          "StartAt" : "First" }
+        EOF
+      hcl_after: |
+        definition = jsonencode({
+          Comment = "state machine"
+          StartAt = "First"
+        })

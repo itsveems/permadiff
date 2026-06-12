@@ -1,0 +1,147 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.7.5",
+  "resource_changes": [
+    {
+      "address": "aws_iam_policy.noop",
+      "mode": "managed",
+      "type": "aws_iam_policy",
+      "name": "noop",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:iam::111122223333:policy/app-data",
+          "name": "app-data",
+          "path": "/",
+          "policy": "{\"Statement\":[{\"Action\":[\"s3:getobject\",\"s3:PutObject\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:s3:::app-data/*\",\"Sid\":\"AppData\"}],\"Version\":\"2012-10-17\"}",
+          "tags": null
+        },
+        "after": {
+          "arn": "arn:aws:iam::111122223333:policy/app-data",
+          "name": "app-data",
+          "path": "/",
+          "policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"AppData\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\"s3:PutObject\", \"s3:GetObject\"],\n      \"Resource\": [\"arn:aws:s3:::app-data/*\"]\n    }\n  ]\n}\n",
+          "tags": null
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_iam_policy.real",
+      "mode": "managed",
+      "type": "aws_iam_policy",
+      "name": "real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:iam::111122223333:policy/app-data-rw",
+          "name": "app-data-rw",
+          "path": "/",
+          "policy": "{\"Statement\":[{\"Action\":[\"s3:GetObject\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:s3:::app-data/*\",\"Sid\":\"AppData\"}],\"Version\":\"2012-10-17\"}",
+          "tags": null
+        },
+        "after": {
+          "arn": "arn:aws:iam::111122223333:policy/app-data-rw",
+          "name": "app-data-rw",
+          "path": "/",
+          "policy": "{\"Statement\":[{\"Action\":[\"s3:GetObject\",\"s3:DeleteObject\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:s3:::app-data/*\",\"Sid\":\"AppData\"}],\"Version\":\"2012-10-17\"}",
+          "tags": null
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_iam_role.trust_noop",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "trust_noop",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:iam::111122223333:role/app-runtime",
+          "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+          "max_session_duration": 3600,
+          "name": "app-runtime",
+          "path": "/",
+          "tags": null
+        },
+        "after": {
+          "arn": "arn:aws:iam::111122223333:role/app-runtime",
+          "assume_role_policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": {\n    \"Effect\": \"Allow\",\n    \"Principal\": {\"Service\": \"ec2.amazonaws.com\"},\n    \"Action\": [\"sts:AssumeRole\"]\n  }\n}",
+          "max_session_duration": 3600,
+          "name": "app-runtime",
+          "path": "/",
+          "tags": null
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_iam_role.trust_real",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "trust_real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:iam::111122223333:role/ci-deployer",
+          "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+          "max_session_duration": 3600,
+          "name": "ci-deployer",
+          "path": "/",
+          "tags": null
+        },
+        "after": {
+          "arn": "arn:aws:iam::111122223333:role/ci-deployer",
+          "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+          "max_session_duration": 3600,
+          "name": "ci-deployer",
+          "path": "/",
+          "tags": null
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_iam_role.mixed",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "mixed",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:iam::111122223333:role/batch-worker",
+          "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ecs-tasks.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+          "max_session_duration": 3600,
+          "name": "batch-worker",
+          "path": "/",
+          "tags": null
+        },
+        "after": {
+          "arn": "arn:aws:iam::111122223333:role/batch-worker",
+          "assume_role_policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Principal\":{\"Service\":\"ecs-tasks.amazonaws.com\"},\"Effect\":\"Allow\",\"Action\":[\"sts:AssumeRole\"]}]}",
+          "max_session_duration": 7200,
+          "name": "batch-worker",
+          "path": "/",
+          "tags": null
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

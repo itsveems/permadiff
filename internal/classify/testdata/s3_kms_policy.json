@@ -1,0 +1,110 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.7.5",
+  "resource_changes": [
+    {
+      "address": "aws_s3_bucket_policy.noop",
+      "mode": "managed",
+      "type": "aws_s3_bucket_policy",
+      "name": "noop",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "bucket": "public-site",
+          "id": "public-site",
+          "policy": "{\"Statement\":[{\"Action\":\"s3:GetObject\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"arn:aws:s3:::public-site/*\",\"Sid\":\"PublicRead\"}],\"Version\":\"2012-10-17\"}"
+        },
+        "after": {
+          "bucket": "public-site",
+          "id": "public-site",
+          "policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"PublicRead\",\n      \"Effect\": \"Allow\",\n      \"Principal\": {\"AWS\": \"*\"},\n      \"Action\": [\"s3:GetObject\"],\n      \"Resource\": [\"arn:aws:s3:::public-site/*\"]\n    }\n  ]\n}"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_s3_bucket_policy.real",
+      "mode": "managed",
+      "type": "aws_s3_bucket_policy",
+      "name": "real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "bucket": "public-site",
+          "id": "public-site",
+          "policy": "{\"Statement\":[{\"Action\":\"s3:GetObject\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"arn:aws:s3:::public-site/*\",\"Sid\":\"PublicRead\"}],\"Version\":\"2012-10-17\"}"
+        },
+        "after": {
+          "bucket": "public-site",
+          "id": "public-site",
+          "policy": "{\"Statement\":[{\"Action\":\"s3:GetObject\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"arn:aws:s3:::public-site-v2/*\",\"Sid\":\"PublicRead\"}],\"Version\":\"2012-10-17\"}"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_kms_key.noop",
+      "mode": "managed",
+      "type": "aws_kms_key",
+      "name": "noop",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:kms:eu-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+          "description": "audit log encryption",
+          "enable_key_rotation": true,
+          "key_id": "1234abcd-12ab-34cd-56ef-1234567890ab",
+          "policy": "{\"Statement\":[{\"Action\":\"kms:*\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::111122223333:root\"},\"Resource\":\"*\",\"Sid\":\"EnableRootPermissions\"}],\"Version\":\"2012-10-17\"}",
+          "tags": null
+        },
+        "after": {
+          "arn": "arn:aws:kms:eu-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+          "description": "audit log encryption",
+          "enable_key_rotation": true,
+          "key_id": "1234abcd-12ab-34cd-56ef-1234567890ab",
+          "policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"EnableRootPermissions\",\n      \"Effect\": \"Allow\",\n      \"Principal\": {\"AWS\": \"111122223333\"},\n      \"Action\": \"kms:*\",\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+          "tags": null
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_kms_key.real",
+      "mode": "managed",
+      "type": "aws_kms_key",
+      "name": "real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:kms:eu-west-2:111122223333:key/9876fedc-12ab-34cd-56ef-1234567890ab",
+          "description": "shared data key",
+          "enable_key_rotation": true,
+          "key_id": "9876fedc-12ab-34cd-56ef-1234567890ab",
+          "policy": "{\"Statement\":[{\"Action\":\"kms:*\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::111122223333:root\"},\"Resource\":\"*\",\"Sid\":\"EnableRootPermissions\"}],\"Version\":\"2012-10-17\"}",
+          "tags": null
+        },
+        "after": {
+          "arn": "arn:aws:kms:eu-west-2:111122223333:key/9876fedc-12ab-34cd-56ef-1234567890ab",
+          "description": "shared data key",
+          "enable_key_rotation": true,
+          "key_id": "9876fedc-12ab-34cd-56ef-1234567890ab",
+          "policy": "{\"Statement\":[{\"Action\":\"kms:*\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::111122223333:root\"},\"Resource\":\"*\",\"Sid\":\"EnableRootPermissions\"},{\"Action\":[\"kms:Decrypt\",\"kms:DescribeKey\"],\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::444455556666:root\"},\"Resource\":\"*\",\"Sid\":\"AllowPartnerDecrypt\"}],\"Version\":\"2012-10-17\"}",
+          "tags": null
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

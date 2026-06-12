@@ -1,0 +1,187 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.7.5",
+  "resource_changes": [
+    {
+      "address": "aws_security_group.noop",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "noop",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "description": "web tier",
+          "id": "sg-0a1b2c3d4e5f60001",
+          "ingress": [
+            {
+              "cidr_blocks": ["10.0.0.0/8", "172.16.0.0/12"],
+              "description": "https from internal",
+              "from_port": 443,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 443
+            },
+            {
+              "cidr_blocks": ["0.0.0.0/0"],
+              "description": "",
+              "from_port": 80,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 80
+            }
+          ],
+          "name": "web-tier",
+          "tags": null,
+          "vpc_id": "vpc-0f00ba441cafe0001"
+        },
+        "after": {
+          "description": "web tier",
+          "id": "sg-0a1b2c3d4e5f60001",
+          "ingress": [
+            {
+              "cidr_blocks": ["0.0.0.0/0"],
+              "description": null,
+              "from_port": 80,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 80
+            },
+            {
+              "cidr_blocks": ["172.16.0.0/12", "10.0.0.0/8"],
+              "description": "https from internal",
+              "from_port": 443,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 443
+            }
+          ],
+          "name": "web-tier",
+          "tags": null,
+          "vpc_id": "vpc-0f00ba441cafe0001"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_security_group.real",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "description": "app tier",
+          "id": "sg-0a1b2c3d4e5f60002",
+          "ingress": [
+            {
+              "cidr_blocks": ["10.0.0.0/8"],
+              "description": "app port",
+              "from_port": 8080,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 8080
+            }
+          ],
+          "name": "app-tier",
+          "tags": null,
+          "vpc_id": "vpc-0f00ba441cafe0001"
+        },
+        "after": {
+          "description": "app tier",
+          "id": "sg-0a1b2c3d4e5f60002",
+          "ingress": [
+            {
+              "cidr_blocks": ["0.0.0.0/0"],
+              "description": "app port",
+              "from_port": 8080,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 8080
+            }
+          ],
+          "name": "app-tier",
+          "tags": null,
+          "vpc_id": "vpc-0f00ba441cafe0001"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_security_group.desc_only",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "desc_only",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "description": "bastion",
+          "id": "sg-0a1b2c3d4e5f60003",
+          "ingress": [
+            {
+              "cidr_blocks": ["203.0.113.0/24"],
+              "description": "ssh from office",
+              "from_port": 22,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 22
+            }
+          ],
+          "name": "bastion",
+          "tags": null,
+          "vpc_id": "vpc-0f00ba441cafe0001"
+        },
+        "after": {
+          "description": "bastion",
+          "id": "sg-0a1b2c3d4e5f60003",
+          "ingress": [
+            {
+              "cidr_blocks": ["203.0.113.0/24"],
+              "description": "ssh from office VPN range",
+              "from_port": 22,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 22
+            }
+          ],
+          "name": "bastion",
+          "tags": null,
+          "vpc_id": "vpc-0f00ba441cafe0001"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

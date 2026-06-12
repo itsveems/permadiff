@@ -1,0 +1,270 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.7.5",
+  "resource_changes": [
+    {
+      "address": "aws_lb_target_group.coercion_noop",
+      "mode": "managed",
+      "type": "aws_lb_target_group",
+      "name": "coercion_noop",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:elasticloadbalancing:eu-west-2:111122223333:targetgroup/web/abc123",
+          "name": "web",
+          "port": 80,
+          "protocol": "HTTP",
+          "vpc_id": "vpc-0f00ba441cafe0001"
+        },
+        "after": {
+          "arn": "arn:aws:elasticloadbalancing:eu-west-2:111122223333:targetgroup/web/abc123",
+          "name": "web",
+          "port": "80",
+          "protocol": "HTTP",
+          "vpc_id": "vpc-0f00ba441cafe0001"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_lb_target_group.coercion_real",
+      "mode": "managed",
+      "type": "aws_lb_target_group",
+      "name": "coercion_real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:elasticloadbalancing:eu-west-2:111122223333:targetgroup/api/def456",
+          "name": "api",
+          "port": 8080,
+          "protocol": "HTTP",
+          "vpc_id": "vpc-0f00ba441cafe0001"
+        },
+        "after": {
+          "arn": "arn:aws:elasticloadbalancing:eu-west-2:111122223333:targetgroup/api/def456",
+          "name": "api",
+          "port": "9090",
+          "protocol": "HTTP",
+          "vpc_id": "vpc-0f00ba441cafe0001"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_instance.sg_order_noop",
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "sg_order_noop",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "ami": "ami-0aa2b7722dc1b5612",
+          "id": "i-0123456789abcdef1",
+          "instance_type": "t3.large",
+          "tags": {"Name": "worker-1"},
+          "tags_all": {"Name": "worker-1"},
+          "vpc_security_group_ids": ["sg-0aaa", "sg-0bbb", "sg-0ccc"]
+        },
+        "after": {
+          "ami": "ami-0aa2b7722dc1b5612",
+          "id": "i-0123456789abcdef1",
+          "instance_type": "t3.large",
+          "tags": {"Name": "worker-1"},
+          "tags_all": {"Name": "worker-1"},
+          "vpc_security_group_ids": ["sg-0ccc", "sg-0aaa", "sg-0bbb"]
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_instance.sg_swap_real",
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "sg_swap_real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "ami": "ami-0aa2b7722dc1b5612",
+          "id": "i-0123456789abcdef2",
+          "instance_type": "t3.large",
+          "tags": {"Name": "worker-2"},
+          "tags_all": {"Name": "worker-2"},
+          "vpc_security_group_ids": ["sg-0aaa", "sg-0bbb"]
+        },
+        "after": {
+          "ami": "ami-0aa2b7722dc1b5612",
+          "id": "i-0123456789abcdef2",
+          "instance_type": "t3.large",
+          "tags": {"Name": "worker-2"},
+          "tags_all": {"Name": "worker-2"},
+          "vpc_security_group_ids": ["sg-0aaa", "sg-0zzz"]
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_sfn_state_machine.json_noop",
+      "mode": "managed",
+      "type": "aws_sfn_state_machine",
+      "name": "json_noop",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:states:eu-west-2:111122223333:stateMachine:order-flow",
+          "definition": "{\"Comment\":\"order flow\",\"StartAt\":\"Validate\",\"States\":{\"Validate\":{\"End\":true,\"Resource\":\"arn:aws:lambda:eu-west-2:111122223333:function:validate\",\"Type\":\"Task\"}}}",
+          "name": "order-flow",
+          "role_arn": "arn:aws:iam::111122223333:role/sfn-order-flow"
+        },
+        "after": {
+          "arn": "arn:aws:states:eu-west-2:111122223333:stateMachine:order-flow",
+          "definition": "{\n  \"Comment\": \"order flow\",\n  \"StartAt\": \"Validate\",\n  \"States\": {\n    \"Validate\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"arn:aws:lambda:eu-west-2:111122223333:function:validate\",\n      \"End\": true\n    }\n  }\n}",
+          "name": "order-flow",
+          "role_arn": "arn:aws:iam::111122223333:role/sfn-order-flow"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_sfn_state_machine.json_real",
+      "mode": "managed",
+      "type": "aws_sfn_state_machine",
+      "name": "json_real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:states:eu-west-2:111122223333:stateMachine:refund-flow",
+          "definition": "{\"Comment\":\"refund flow\",\"StartAt\":\"Check\",\"States\":{\"Check\":{\"End\":true,\"Resource\":\"arn:aws:lambda:eu-west-2:111122223333:function:check\",\"TimeoutSeconds\":30,\"Type\":\"Task\"}}}",
+          "name": "refund-flow",
+          "role_arn": "arn:aws:iam::111122223333:role/sfn-refund-flow"
+        },
+        "after": {
+          "arn": "arn:aws:states:eu-west-2:111122223333:stateMachine:refund-flow",
+          "definition": "{\"Comment\":\"refund flow\",\"StartAt\":\"Check\",\"States\":{\"Check\":{\"End\":true,\"Resource\":\"arn:aws:lambda:eu-west-2:111122223333:function:check\",\"TimeoutSeconds\":60,\"Type\":\"Task\"}}}",
+          "name": "refund-flow",
+          "role_arn": "arn:aws:iam::111122223333:role/sfn-refund-flow"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_instance.user_data_json_real",
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "user_data_json_real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "ami": "ami-0aa2b7722dc1b5612",
+          "id": "i-0123456789abcdef3",
+          "instance_type": "t3.small",
+          "user_data": "{\"app\":{\"port\":8080,\"env\":\"prod\"}}",
+          "user_data_replace_on_change": false
+        },
+        "after": {
+          "ami": "ami-0aa2b7722dc1b5612",
+          "id": "i-0123456789abcdef3",
+          "instance_type": "t3.small",
+          "user_data": "{\n  \"app\": {\n    \"env\": \"prod\",\n    \"port\": 8080\n  }\n}\n",
+          "user_data_replace_on_change": false
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_ssm_parameter.json_value_real",
+      "mode": "managed",
+      "type": "aws_ssm_parameter",
+      "name": "json_value_real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:ssm:eu-west-2:111122223333:parameter/app/feature-flags",
+          "name": "/app/feature-flags",
+          "type": "String",
+          "value": "{\"checkout_v2\":true,\"dark_mode\":false}"
+        },
+        "after": {
+          "arn": "arn:aws:ssm:eu-west-2:111122223333:parameter/app/feature-flags",
+          "name": "/app/feature-flags",
+          "type": "String",
+          "value": "{\n  \"checkout_v2\": true,\n  \"dark_mode\": false\n}"
+        },
+        "after_unknown": {"version": true},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_secretsmanager_secret_version.bool_sensitive",
+      "mode": "managed",
+      "type": "aws_secretsmanager_secret_version",
+      "name": "bool_sensitive",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:secretsmanager:eu-west-2:111122223333:secret:db-creds-AbCdEf",
+          "secret_string": "whole-object-secret-before",
+          "version_stages": ["AWSCURRENT"]
+        },
+        "after": {
+          "arn": "arn:aws:secretsmanager:eu-west-2:111122223333:secret:db-creds-AbCdEf",
+          "secret_string": "whole-object-secret-after",
+          "version_stages": ["AWSCURRENT"]
+        },
+        "after_unknown": {},
+        "before_sensitive": true,
+        "after_sensitive": true
+      }
+    },
+    {
+      "address": "aws_db_instance.sensitive_real",
+      "mode": "managed",
+      "type": "aws_db_instance",
+      "name": "sensitive_real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "engine": "postgres",
+          "id": "db-ORDERS",
+          "identifier": "orders",
+          "instance_class": "db.t3.medium",
+          "password": "correct-horse-battery"
+        },
+        "after": {
+          "engine": "postgres",
+          "id": "db-ORDERS",
+          "identifier": "orders",
+          "instance_class": "db.t3.medium",
+          "password": "staple-battery-horse"
+        },
+        "after_unknown": {},
+        "before_sensitive": {"password": true},
+        "after_sensitive": {"password": true}
+      }
+    }
+  ]
+}

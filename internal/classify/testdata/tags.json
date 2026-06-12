@@ -1,0 +1,129 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.7.5",
+  "resource_changes": [
+    {
+      "address": "aws_lambda_function.noop_tags",
+      "mode": "managed",
+      "type": "aws_lambda_function",
+      "name": "noop_tags",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:lambda:eu-west-2:111122223333:function:audit-ship",
+          "function_name": "audit-ship",
+          "handler": "main.handler",
+          "memory_size": 256,
+          "runtime": "python3.12",
+          "tags": {},
+          "tags_all": {},
+          "timeout": 30
+        },
+        "after": {
+          "arn": "arn:aws:lambda:eu-west-2:111122223333:function:audit-ship",
+          "function_name": "audit-ship",
+          "handler": "main.handler",
+          "memory_size": 256,
+          "runtime": "python3.12",
+          "tags": null,
+          "tags_all": null,
+          "timeout": 30
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_lambda_function.real_tags",
+      "mode": "managed",
+      "type": "aws_lambda_function",
+      "name": "real_tags",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:lambda:eu-west-2:111122223333:function:report-gen",
+          "function_name": "report-gen",
+          "handler": "main.handler",
+          "memory_size": 512,
+          "runtime": "python3.12",
+          "tags": {"Env": "prod", "Team": "data"},
+          "tags_all": {"Env": "prod", "Team": "data"},
+          "timeout": 60
+        },
+        "after": {
+          "arn": "arn:aws:lambda:eu-west-2:111122223333:function:report-gen",
+          "function_name": "report-gen",
+          "handler": "main.handler",
+          "memory_size": 512,
+          "runtime": "python3.12",
+          "tags": {"Env": "staging", "Team": "data"},
+          "tags_all": {"Env": "staging", "Team": "data"},
+          "timeout": 60
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_instance.tags_all_partial_unknown_real",
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "tags_all_partial_unknown_real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "ami": "ami-0aa2b7722dc1b5612",
+          "id": "i-0123456789abcdef4",
+          "instance_type": "t3.medium",
+          "tags": {"Team": "alpha"},
+          "tags_all": {"CostCentre": "platform", "Team": "alpha"}
+        },
+        "after": {
+          "ami": "ami-0aa2b7722dc1b5612",
+          "id": "i-0123456789abcdef4",
+          "instance_type": "t3.medium",
+          "tags": {"Team": "beta"},
+          "tags_all": {"Team": "beta"}
+        },
+        "after_unknown": {
+          "tags_all": {"CostCentre": true}
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_instance.tags_all_unknown",
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "tags_all_unknown",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "ami": "ami-0aa2b7722dc1b5612",
+          "id": "i-0123456789abcdef0",
+          "instance_type": "t3.medium",
+          "tags": {"Name": "web-1"},
+          "tags_all": {"CostCentre": "platform", "Name": "web-1"}
+        },
+        "after": {
+          "ami": "ami-0aa2b7722dc1b5612",
+          "id": "i-0123456789abcdef0",
+          "instance_type": "t3.medium",
+          "tags": {"Name": "web-1"}
+        },
+        "after_unknown": {
+          "tags_all": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

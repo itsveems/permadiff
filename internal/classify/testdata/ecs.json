@@ -1,0 +1,80 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.7.5",
+  "resource_changes": [
+    {
+      "address": "aws_ecs_task_definition.noop",
+      "mode": "managed",
+      "type": "aws_ecs_task_definition",
+      "name": "noop",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:ecs:eu-west-2:111122223333:task-definition/checkout:41",
+          "container_definitions": "[{\"cpu\":0,\"environment\":[{\"name\":\"ENV\",\"value\":\"prod\"},{\"name\":\"PORT\",\"value\":\"8080\"}],\"essential\":true,\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/checkout:1.4.2\",\"mountPoints\":[],\"name\":\"app\",\"portMappings\":[{\"containerPort\":8080,\"hostPort\":8080,\"protocol\":\"tcp\"}],\"systemControls\":[],\"volumesFrom\":[]}]",
+          "cpu": "256",
+          "family": "checkout",
+          "memory": "512",
+          "network_mode": "awsvpc",
+          "requires_compatibilities": ["FARGATE"],
+          "revision": 41,
+          "tags": null
+        },
+        "after": {
+          "container_definitions": "[{\"name\":\"app\",\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/checkout:1.4.2\",\"environment\":[{\"name\":\"PORT\",\"value\":8080},{\"name\":\"ENV\",\"value\":\"prod\"}],\"portMappings\":[{\"containerPort\":8080,\"hostPort\":8080}]}]",
+          "cpu": "256",
+          "family": "checkout",
+          "memory": "512",
+          "network_mode": "awsvpc",
+          "requires_compatibilities": ["FARGATE"],
+          "tags": null
+        },
+        "after_unknown": {
+          "arn": true,
+          "arn_without_revision": true,
+          "revision": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_ecs_task_definition.real",
+      "mode": "managed",
+      "type": "aws_ecs_task_definition",
+      "name": "real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:ecs:eu-west-2:111122223333:task-definition/payments:17",
+          "container_definitions": "[{\"cpu\":0,\"environment\":[{\"name\":\"ENV\",\"value\":\"prod\"}],\"essential\":true,\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/payments:2.0.1\",\"mountPoints\":[],\"name\":\"app\",\"portMappings\":[],\"systemControls\":[],\"volumesFrom\":[]}]",
+          "cpu": "256",
+          "family": "payments",
+          "memory": "512",
+          "network_mode": "awsvpc",
+          "requires_compatibilities": ["FARGATE"],
+          "revision": 17,
+          "tags": null
+        },
+        "after": {
+          "container_definitions": "[{\"name\":\"app\",\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/payments:2.1.0\",\"environment\":[{\"name\":\"ENV\",\"value\":\"prod\"}]}]",
+          "cpu": "256",
+          "family": "payments",
+          "memory": "512",
+          "network_mode": "awsvpc",
+          "requires_compatibilities": ["FARGATE"],
+          "tags": null
+        },
+        "after_unknown": {
+          "arn": true,
+          "arn_without_revision": true,
+          "revision": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}
