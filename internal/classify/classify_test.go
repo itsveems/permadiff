@@ -53,6 +53,10 @@ func TestClassification(t *testing.T) {
 		// 2. S3 bucket policy
 		{fixture: "s3_kms_policy.json", address: "aws_s3_bucket_policy.noop", wantClass: ClassNoise, wantConf: catalog.High, noopAttrs: []string{"policy"}},
 		{fixture: "s3_kms_policy.json", address: "aws_s3_bucket_policy.real", wantClass: ClassReal, realAttrs: []string{"policy"}},
+		// "*" ≡ {"AWS":"*"} collapses only under Allow. Under Deny the two forms
+		// deny different principals, so a DenyInsecureTransport rewritten this way
+		// is a REAL security change, not normalisation noise.
+		{fixture: "s3_kms_policy.json", address: "aws_s3_bucket_policy.deny_principal_real", wantClass: ClassReal, realAttrs: []string{"policy"}},
 
 		// 3. KMS key policy (bare account id vs root ARN)
 		{fixture: "s3_kms_policy.json", address: "aws_kms_key.noop", wantClass: ClassNoise, wantConf: catalog.High, noopAttrs: []string{"policy"}},

@@ -49,6 +49,29 @@
       }
     },
     {
+      "address": "aws_s3_bucket_policy.deny_principal_real",
+      "mode": "managed",
+      "type": "aws_s3_bucket_policy",
+      "name": "deny_principal_real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "bucket": "secure-bucket",
+          "id": "secure-bucket",
+          "policy": "{\"Statement\":[{\"Sid\":\"DenyInsecureTransport\",\"Action\":\"s3:*\",\"Effect\":\"Deny\",\"Principal\":\"*\",\"Resource\":[\"arn:aws:s3:::secure-bucket\",\"arn:aws:s3:::secure-bucket/*\"],\"Condition\":{\"Bool\":{\"aws:SecureTransport\":\"false\"}}}],\"Version\":\"2012-10-17\"}"
+        },
+        "after": {
+          "bucket": "secure-bucket",
+          "id": "secure-bucket",
+          "policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"DenyInsecureTransport\",\n      \"Effect\": \"Deny\",\n      \"Principal\": {\"AWS\": \"*\"},\n      \"Action\": \"s3:*\",\n      \"Resource\": [\"arn:aws:s3:::secure-bucket\", \"arn:aws:s3:::secure-bucket/*\"],\n      \"Condition\": {\"Bool\": {\"aws:SecureTransport\": \"false\"}}\n    }\n  ]\n}"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
       "address": "aws_kms_key.noop",
       "mode": "managed",
       "type": "aws_kms_key",

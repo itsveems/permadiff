@@ -199,6 +199,27 @@ func TestAWSPolicyJSON(t *testing.T) {
 			wantEqual: false,
 		},
 		{
+			// Same "*" ≡ {"AWS":"*"} asymmetry, this time on Principal under a
+			// Deny: "*" denies everyone (incl. anonymous), {"AWS":"*"} denies only
+			// AWS principals. Collapsing them would hide a real security change
+			// (e.g. a DenyInsecureTransport that stops blocking anonymous HTTP).
+			name:      "REAL: Deny Principal star vs AWS star is NOT collapsed",
+			strategy:  "aws_policy_json",
+			before:    `{"Version":"2012-10-17","Statement":[{"Sid":"DenyInsecure","Effect":"Deny","Action":"s3:*","Resource":"*","Principal":"*","Condition":{"Bool":{"aws:SecureTransport":"false"}}}]}`,
+			after:     `{"Version":"2012-10-17","Statement":[{"Sid":"DenyInsecure","Effect":"Deny","Action":"s3:*","Resource":"*","Principal":{"AWS":"*"},"Condition":{"Bool":{"aws:SecureTransport":"false"}}}]}`,
+			wantEqual: false,
+		},
+		{
+			// The Allow counterpart MUST still collapse — this is the legitimate
+			// public-bucket perma-diff S3 actually produces, and the fix's gate
+			// must not regress it.
+			name:      "Allow Principal star vs AWS star still collapses",
+			strategy:  "aws_policy_json",
+			before:    `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:GetObject","Resource":"*","Principal":"*"}]}`,
+			after:     `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:GetObject","Resource":"*","Principal":{"AWS":"*"}}]}`,
+			wantEqual: true,
+		},
+		{
 			name:      "NotPrincipal scalar vs single-element list still equal",
 			strategy:  "aws_policy_json",
 			before:    `{"Version":"2012-10-17","Statement":[{"Effect":"Deny","Action":"s3:*","Resource":"*","NotPrincipal":{"AWS":"arn:aws:iam::111122223333:root"}}]}`,

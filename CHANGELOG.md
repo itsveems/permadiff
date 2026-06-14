@@ -4,7 +4,7 @@ All notable changes to permadiff are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [SemVer](https://semver.org/).
 
-## [0.1.0] — 2026-06-10
+## [0.1.0] — Unreleased
 
 Initial release.
 
@@ -18,7 +18,7 @@ Initial release.
   equivalence, ECS container-definition normalisation.
 - YAML pattern catalog (12 seed AWS pattern families, 17 entries) embedded in the binary,
   extensible at runtime via `--catalog`; every entry carries a plain-English
-  explanation and a prioritized fix (HCL fix first, narrowly scoped
+  explanation and a prioritised fix (HCL fix first, narrowly scoped
   `ignore_changes` only for irreducible churn, with warnings).
 - Confidence levels: only high-confidence findings count as noise;
   medium-confidence findings (e.g. `tags_all` computed churn) stay with the
@@ -33,8 +33,11 @@ Initial release.
 - Conservative-safety hardening: exact-precision
   number comparison (`json.Number`, no float64 collapse of large integers);
   keyed last-wins ECS lists (environment/secrets/systemControls/ulimits) keep
-  order when duplicate keys exist; no `"*"` ≡ `{"AWS":"*"}` collapse inside
-  `NotPrincipal`; trailing-JSON rejection; whole-object boolean sensitivity
+  order when duplicate keys exist; the `"*"` ≡ `{"AWS":"*"}` Principal collapse
+  is gated to `Effect: Allow` and never applied to `NotPrincipal` or any `Deny`
+  statement (under Deny the two forms deny different principal sets, so the
+  collapse would hide a real change — e.g. a `DenyInsecureTransport` that stops
+  blocking anonymous access); trailing-JSON rejection; whole-object boolean sensitivity
   marks honoured; partially-unknown attributes never waved through by computed
   patterns; markdown/terminal output escaped against hostile addresses; the
   generic JSON pattern restricted to a curated allowlist so verbatim-bytes

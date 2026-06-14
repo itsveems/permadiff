@@ -23,9 +23,11 @@ func init() {
 //     array is a set (order-insensitive, duplicates redundant).
 //   - Action/NotAction names are case-insensitive per the IAM policy grammar.
 //     (Resource ARNs are case-sensitive and are NOT case-folded.)
-//   - Principal/NotPrincipal map values are scalar-or-set; "Principal": "*"
-//     is equivalent to {"AWS": "*"} (Principal only — see normalizePrincipal
-//     for why NotPrincipal never gets that collapse).
+//   - Principal/NotPrincipal map values are scalar-or-set; in an *Allow*
+//     statement "Principal": "*" is equivalent to {"AWS": "*"} (S3 rewrites one
+//     form to the other for public-read policies). The collapse is gated on
+//     Effect == "Allow": under Deny the two forms deny different principal sets,
+//     and NotPrincipal never gets it either — see normalizePrincipal.
 //   - Condition values are scalar-or-set; AWS stores condition values as
 //     strings, so bools/numbers written by jsonencode() are coerced to their
 //     string forms before comparing. Condition value *case* is preserved
@@ -95,6 +97,13 @@ func normalizePolicyValue(v any, key string, ctx policyCtx) any {
 	switch t := v.(type) {
 	case map[string]any:
 		out := make(map[string]any, len(t))
+		// A statement's Effect governs the "*" ≡ {"AWS":"*"} Principal collapse:
+		// it is semantics-preserving only for Allow. Under Deny the two forms
+		// deny different principal sets ("*" denies everyone, including anonymous
+		// requests; {"AWS":"*"} denies only AWS account principals), so collapsing
+		// them there would silently change what the policy denies. A missing or
+		// non-"Allow" Effect fails closed (no collapse).
+		effect, _ := t["Effect"].(string)
 		for k, sub := range t {
 			switch {
 			case k == "Statement":
@@ -109,7 +118,7 @@ func normalizePolicyValue(v any, key string, ctx policyCtx) any {
 					return normalizePolicyValue(e, k, ctxNone)
 				})
 			case k == "Principal" || k == "NotPrincipal":
-				out[k] = normalizePrincipal(sub, k == "Principal")
+				out[k] = normalizePrincipal(sub, k == "Principal" && effect == "Allow")
 			case k == "Condition":
 				out[k] = normalizeCondition(sub)
 			default:
@@ -137,11 +146,12 @@ func normalizePolicyValue(v any, key string, ctx policyCtx) any {
 // normalizePrincipal handles Principal/NotPrincipal:
 //   - map values are scalar-or-set
 //   - bare account IDs in AWS principals expand to root ARNs
-//   - for Principal ONLY: "*" ≡ {"AWS": "*"} — S3/IAM rewrite one form to the
-//     other when storing resource policies. The collapse is NOT applied to
-//     NotPrincipal: there the two forms exclude different principal sets
-//     ("*" excludes everyone; {"AWS": "*"} excludes only AWS principals), and
-//     conflating them would change what a Deny statement denies.
+//   - "*" ≡ {"AWS": "*"} collapse, controlled by allowStarCollapse, which the
+//     caller sets true ONLY for an Allow statement's Principal. It is wrong for
+//     NotPrincipal and for any Deny statement: there the two forms cover
+//     different principal sets ("*" is everyone, including anonymous;
+//     {"AWS": "*"} is only AWS account principals), so conflating them would
+//     change what the statement excludes or denies.
 func normalizePrincipal(v any, allowStarCollapse bool) any {
 	if s, ok := v.(string); ok {
 		return s // "*" or an account/ARN scalar stays as-is

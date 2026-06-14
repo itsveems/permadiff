@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 900" width="760" height="900" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+  <rect x="0.5" y="0.5" width="759" height="899" rx="10" fill="#0d1117" stroke="#30363d"/>
+  <rect x="1" y="1" width="758" height="36" rx="10" fill="#161b22"/>
+  <rect x="1" y="26" width="758" height="11" fill="#161b22"/>
+  <circle cx="22" cy="18" r="6" fill="#ff5f56"/>
+  <circle cx="42" cy="18" r="6" fill="#ffbd2e"/>
+  <circle cx="62" cy="18" r="6" fill="#27c93f"/>
+  <text x="380" y="23" text-anchor="middle" font-size="12" fill="#6e7681">permadiff — terraform plan</text>
+  <line x1="22" y1="110" x2="738" y2="110" stroke="#30363d"/>
+  <line x1="22" y1="604" x2="738" y2="604" stroke="#30363d"/>
+  <g font-size="12" fill="#c9d1d9">
+    <text x="22" y="58" xml:space="preserve"><tspan fill="#2bd4d4" font-weight="bold">permadiff</tspan>  <tspan fill="#f0f6fc" font-weight="bold">6 changes</tspan>: <tspan fill="#3fb950">2 perma-diff no-ops (with fixes)</tspan> · <tspan fill="#e3b341">4 real changes</tspan></text>
+    <text x="22" y="96" xml:space="preserve"><tspan fill="#f0f6fc" font-weight="bold">PERMA-DIFF NOISE (2)</tspan><tspan fill="#6e7681"> — semantically identical before and after; nothing changes in AWS</tspan></text>
+    <text x="22" y="172" xml:space="preserve">  <tspan fill="#e3b341">~</tspan> <tspan fill="#f0f6fc" font-weight="bold">aws_iam_policy.app_data</tspan></text>
+    <text x="22" y="191" xml:space="preserve">      <tspan fill="#39c5cf">•</tspan> <tspan fill="#f0f6fc" font-weight="bold">policy</tspan><tspan fill="#6e7681"> — IAM policy JSON normalisation</tspan></text>
+    <text x="22" y="210" xml:space="preserve"><tspan fill="#6e7681">        AWS stores IAM policy documents in its own normalised form: object keys reordered,</tspan></text>
+    <text x="22" y="229" xml:space="preserve"><tspan fill="#6e7681">        whitespace stripped, single-element arrays and scalars interchanged, and statements</tspan></text>
+    <text x="22" y="248" xml:space="preserve"><tspan fill="#6e7681">        reordered. None of that changes what the policy allows or denies — IAM evaluates</tspan></text>
+    <text x="22" y="267" xml:space="preserve"><tspan fill="#6e7681">        statements as an unordered set and action names case-insensitively.</tspan></text>
+    <text x="22" y="286" xml:space="preserve">        <tspan fill="#3fb950">fix:</tspan> Author the policy as HCL via jsonencode() or an aws_iam_policy_document data source</text>
+    <text x="22" y="305" xml:space="preserve">             instead of a hand-written JSON string. Terraform then compares structure rather</text>
+    <text x="22" y="324" xml:space="preserve">             than text. If a diff persists, align your HCL with the stored form shown by</text>
+    <text x="22" y="343" xml:space="preserve">             --explain (e.g. write Action as a list when AWS stores a list).</text>
+    <text x="22" y="381" xml:space="preserve">  <tspan fill="#e3b341">~</tspan> <tspan fill="#f0f6fc" font-weight="bold">aws_security_group.web</tspan></text>
+    <text x="22" y="400" xml:space="preserve">      <tspan fill="#39c5cf">•</tspan> <tspan fill="#f0f6fc" font-weight="bold">ingress</tspan><tspan fill="#6e7681"> — Security group rule set ordering</tspan></text>
+    <text x="22" y="419" xml:space="preserve"><tspan fill="#6e7681">        ingress/egress rules are a set: AWS neither stores nor honours any rule order, and the</tspan></text>
+    <text x="22" y="438" xml:space="preserve"><tspan fill="#6e7681">        inner cidr_blocks/security_groups lists are sets too. A plan that only reorders rules</tspan></text>
+    <text x="22" y="457" xml:space="preserve"><tspan fill="#6e7681">        changes nothing. (A null description and &quot;&quot; are also equivalent — the API returns &quot;&quot; for</tspan></text>
+    <text x="22" y="476" xml:space="preserve"><tspan fill="#6e7681">        unset.)</tspan></text>
+    <text x="22" y="495" xml:space="preserve">        <tspan fill="#3fb950">fix:</tspan> Rule-order churn usually means inline rules are fighting drift or being mixed with</text>
+    <text x="22" y="514" xml:space="preserve">             standalone rule resources. Prefer one aws_vpc_security_group_ingress_rule /</text>
+    <text x="22" y="533" xml:space="preserve">             _egress_rule resource per rule — they have stable identities and update in place —</text>
+    <text x="22" y="552" xml:space="preserve">             and never mix inline ingress/egress blocks with standalone rule resources on the</text>
+    <text x="22" y="571" xml:space="preserve">             same group.</text>
+    <text x="22" y="590" xml:space="preserve"><tspan fill="#f0f6fc" font-weight="bold">REAL CHANGES (4)</tspan><tspan fill="#6e7681"> — review as usual; nothing here is suppressed</tspan></text>
+    <text x="22" y="647" xml:space="preserve">  <tspan fill="#e3b341">~</tspan> <tspan fill="#f0f6fc" font-weight="bold">aws_iam_role.batch_worker</tspan><tspan fill="#6e7681"> (update)</tspan></text>
+    <text x="22" y="666" xml:space="preserve"><tspan fill="#6e7681">      assume_role_policy: no-op (IAM trust (assume-role) policy normalisation)</tspan></text>
+    <text x="22" y="685" xml:space="preserve">      <tspan fill="#f0f6fc" font-weight="bold">max_session_duration:</tspan> 3600 → 7200</text>
+    <text x="22" y="704" xml:space="preserve"><tspan fill="#6e7681">      (1 of 2 differing attributes are no-op noise; the rest are real)</tspan></text>
+    <text x="22" y="742" xml:space="preserve">  <tspan fill="#e3b341">~</tspan> <tspan fill="#f0f6fc" font-weight="bold">aws_instance.api</tspan><tspan fill="#6e7681"> (update)</tspan></text>
+    <text x="22" y="761" xml:space="preserve">      <tspan fill="#f0f6fc" font-weight="bold">instance_type:</tspan> &quot;t3.medium&quot; → &quot;t3.large&quot;</text>
+    <text x="22" y="799" xml:space="preserve">  <tspan fill="#f85149">±</tspan> <tspan fill="#f0f6fc" font-weight="bold">aws_instance.legacy</tspan><tspan fill="#6e7681"> (replace (destroy then create))</tspan></text>
+    <text x="22" y="837" xml:space="preserve">  <tspan fill="#3fb950">+</tspan> <tspan fill="#f0f6fc" font-weight="bold">aws_s3_bucket.assets</tspan><tspan fill="#6e7681"> (create)</tspan></text>
+    <text x="22" y="875" xml:space="preserve"><tspan fill="#6e7681">↳ permadiff --explain &lt;address&gt; shows the full canonicalisation reasoning and HCL fixes.</tspan></text>
+  </g>
+</svg>

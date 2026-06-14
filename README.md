@@ -2,6 +2,12 @@
 
 **Separate Terraform plan noise from real changes — and fix the noise at its source.**
 
+<p align="center">
+  <img src="docs/screenshot.svg" alt="permadiff separating perma-diff noise from real changes in a Terraform plan, with a fix for each no-op" width="760">
+</p>
+
+<sub>Reproduce this output: <code>permadiff examples/demo-plan.json</code></sub>
+
 `permadiff` reads `terraform show -json` output and identifies **perma-diffs**:
 update-in-place changes that are *not real changes* — artifacts of provider
 normalisation, JSON reordering, type coercion, or formatting, where before and
@@ -10,36 +16,50 @@ and suggests the **correct fix**, so the diff disappears instead of getting
 buried under a reflexive `ignore_changes`.
 
 ```
-permadiff  40 changes: 14 perma-diff no-ops (with fixes) · 26 real changes
+permadiff  6 changes: 2 perma-diff no-ops (with fixes) · 4 real changes
 
-PERMA-DIFF NOISE (12) — semantically identical before and after; nothing changes in AWS
+PERMA-DIFF NOISE (2) — semantically identical before and after; nothing changes in AWS
 ──────────────────────────────────────────────────────────────────────────────
 
-  ~ aws_iam_policy.app
+  ~ aws_iam_policy.app_data
       • policy — IAM policy JSON normalisation
         AWS stores IAM policy documents in its own normalised form: object keys reordered,
         whitespace stripped, single-element arrays and scalars interchanged, and statements
-        reordered. None of that changes what the policy allows or denies.
+        reordered. None of that changes what the policy allows or denies — IAM evaluates
+        statements as an unordered set and action names case-insensitively.
         fix: Author the policy as HCL via jsonencode() or an aws_iam_policy_document data source
              instead of a hand-written JSON string. Terraform then compares structure rather
-             than text.
+             than text. If a diff persists, align your HCL with the stored form shown by
+             --explain (e.g. write Action as a list when AWS stores a list).
 
   ~ aws_security_group.web
       • ingress — Security group rule set ordering
-        ingress/egress rules are a set: AWS neither stores nor honours any rule order. A plan
-        that only reorders rules changes nothing.
-        fix: Prefer one aws_vpc_security_group_ingress_rule / _egress_rule resource per rule —
-             they have stable identities and update in place.
+        ingress/egress rules are a set: AWS neither stores nor honours any rule order, and the
+        inner cidr_blocks/security_groups lists are sets too. A plan that only reorders rules
+        changes nothing. (A null description and "" are also equivalent — the API returns "" for
+        unset.)
+        fix: Rule-order churn usually means inline rules are fighting drift or being mixed with
+             standalone rule resources. Prefer one aws_vpc_security_group_ingress_rule /
+             _egress_rule resource per rule — they have stable identities and update in place —
+             and never mix inline ingress/egress blocks with standalone rule resources on the
+             same group.
 
-REAL CHANGES (18) — review as usual; nothing here is suppressed
+REAL CHANGES (4) — review as usual; nothing here is suppressed
 ──────────────────────────────────────────────────────────────────────────────
 
-  ~ aws_iam_role.batch (update)
-      assume_role_policy: no-op (IAM trust policy normalisation)
+  ~ aws_iam_role.batch_worker (update)
+      assume_role_policy: no-op (IAM trust (assume-role) policy normalisation)
       max_session_duration: 3600 → 7200
       (1 of 2 differing attributes are no-op noise; the rest are real)
 
-  ± aws_instance.replaced (replace (destroy then create))
+  ~ aws_instance.api (update)
+      instance_type: "t3.medium" → "t3.large"
+
+  ± aws_instance.legacy (replace (destroy then create))
+
+  + aws_s3_bucket.assets (create)
+
+↳ Re-run with --explain <address> on the same plan for the full canonicalisation reasoning and HCL fixes.
 ```
 
 ## Install
@@ -89,6 +109,14 @@ keep it honest:
    And when *every* differing attribute is a computed flip to "(known after
    apply)" — so there were no values to compare at all — the resource is
    capped at medium no matter what the catalog says.
+
+A concrete example of how fine the line is: AWS lets a policy principal be
+written as `"*"` or `{"AWS": "*"}`, and for an `Allow` statement those are the
+same thing — a real perma-diff S3 produces for public buckets. But under a
+`Deny` they are *not*: `"*"` denies everyone, including anonymous requests,
+while `{"AWS": "*"}` denies only AWS account principals. So permadiff collapses
+that rewrite only for `Allow`, and reports the `Deny` version as a real change —
+the kind of asymmetry the "prove it or it's real" rule exists to catch.
 
 It is fully **deterministic and offline**: rule-based against a YAML pattern
 catalog. No network calls, no telemetry.
