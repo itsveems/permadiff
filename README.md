@@ -1,5 +1,7 @@
 # permadiff
 
+[![ci](https://github.com/itsveems/permadiff/actions/workflows/ci.yml/badge.svg)](https://github.com/itsveems/permadiff/actions/workflows/ci.yml)
+
 **Separate Terraform plan noise from real changes — and fix the noise at its source.**
 
 <p align="center">

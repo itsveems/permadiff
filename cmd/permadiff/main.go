@@ -41,7 +41,7 @@ which in-place updates are provider-normalisation noise, and how to fix them.
 `
 
 func main() {
-	if err := run(os.Args[1:], os.Stdin, os.Stdout, stdoutIsTTY()); err != nil {
+	if err := run(os.Args[1:], os.Stdin, os.Stdout, isCharDevice(os.Stdout), isCharDevice(os.Stdin)); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return // -h/--help: usage already printed, exit 0
 		}
@@ -50,15 +50,18 @@ func main() {
 	}
 }
 
-func stdoutIsTTY() bool {
-	info, err := os.Stdout.Stat()
+// isCharDevice reports whether f is an interactive terminal rather than a pipe
+// or regular file. Used both to decide on colour for stdout and to refuse to
+// block on an empty stdin when no plan file was given.
+func isCharDevice(f *os.File) bool {
+	info, err := f.Stat()
 	if err != nil {
 		return false
 	}
 	return info.Mode()&os.ModeCharDevice != 0
 }
 
-func run(args []string, stdin io.Reader, stdout io.Writer, isTTY bool) error {
+func run(args []string, stdin io.Reader, stdout io.Writer, stdoutTTY, stdinTTY bool) error {
 	fs := flag.NewFlagSet("permadiff", flag.ContinueOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var (
@@ -77,7 +80,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer, isTTY bool) error {
 		return nil
 	}
 
-	in, name, err := openInput(fs.Args(), stdin)
+	in, name, err := openInput(fs.Args(), stdin, stdinTTY)
 	if err != nil {
 		return err
 	}
@@ -93,7 +96,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer, isTTY bool) error {
 	}
 	rep := classify.Analyze(p, cat)
 
-	st := render.Style{Enabled: colorEnabled(isTTY, *noColor, *forceColor)}
+	st := render.Style{Enabled: colorEnabled(stdoutTTY, *noColor, *forceColor)}
 
 	if *explainAddr != "" {
 		rr := rep.Find(*explainAddr)
@@ -116,19 +119,22 @@ func run(args []string, stdin io.Reader, stdout io.Writer, isTTY bool) error {
 }
 
 // openInput returns the plan JSON stream: an explicit file path, "-", or
-// stdin when no argument is given.
-func openInput(args []string, stdin io.Reader) (io.ReadCloser, string, error) {
+// stdin when input is piped in. With no argument and an interactive terminal
+// on stdin there is nothing to read, so it errors rather than blocking forever.
+func openInput(args []string, stdin io.Reader, stdinTTY bool) (io.ReadCloser, string, error) {
 	switch {
 	case len(args) > 1:
 		return nil, "", fmt.Errorf("expected at most one plan file argument, got %d", len(args))
-	case len(args) == 0 || args[0] == "-":
-		return io.NopCloser(stdin), "stdin", nil
-	default:
+	case len(args) == 1 && args[0] != "-":
 		f, err := os.Open(args[0])
 		if err != nil {
 			return nil, "", err
 		}
 		return f, args[0], nil
+	case len(args) == 0 && stdinTTY:
+		return nil, "", errors.New("no plan given — pass a file (permadiff plan.json) or pipe one in (terraform show -json plan.tfplan | permadiff). Run permadiff --help for usage")
+	default: // piped stdin, or an explicit "-"
+		return io.NopCloser(stdin), "stdin", nil
 	}
 }
 
