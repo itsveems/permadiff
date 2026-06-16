@@ -42,7 +42,7 @@ func Terminal(w io.Writer, rep *classify.Report, st Style) {
 	if rep.Total == 0 {
 		fmt.Fprintf(w, "\n%s\n", st.Dim("Plan contains no changes."))
 	}
-	fmt.Fprintf(w, "\n%s\n\n", st.Dim("↳ Re-run with --explain <address> on the same plan for the full canonicalisation reasoning and HCL fixes."))
+	fmt.Fprintf(w, "\n%s\n\n", st.Dim("↳ permadiff --explain <address> <plan> shows the full canonicalisation reasoning and HCL fixes."))
 }
 
 func headline(rep *classify.Report, st Style) string {

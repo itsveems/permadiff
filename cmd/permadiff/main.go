@@ -132,7 +132,7 @@ func openInput(args []string, stdin io.Reader, stdinTTY bool) (io.ReadCloser, st
 		}
 		return f, args[0], nil
 	case len(args) == 0 && stdinTTY:
-		return nil, "", errors.New("no plan given — pass a file (permadiff plan.json) or pipe one in (terraform show -json plan.tfplan | permadiff). Run permadiff --help for usage")
+		return nil, "", errors.New("no plan given — append a plan file (permadiff [flags] plan.json) or pipe one in (terraform show -json plan.tfplan | permadiff). Run permadiff --help for usage")
 	default: // piped stdin, or an explicit "-"
 		return io.NopCloser(stdin), "stdin", nil
 	}

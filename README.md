@@ -61,7 +61,7 @@ REAL CHANGES (4) — review as usual; nothing here is suppressed
 
   + aws_s3_bucket.assets (create)
 
-↳ Re-run with --explain <address> on the same plan for the full canonicalisation reasoning and HCL fixes.
+↳ permadiff --explain <address> <plan> shows the full canonicalisation reasoning and HCL fixes.
 ```
 
 ## Install

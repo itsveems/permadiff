@@ -41,6 +41,6 @@
     <text x="22" y="761" xml:space="preserve">      <tspan fill="#f0f6fc" font-weight="bold">instance_type:</tspan> &quot;t3.medium&quot; → &quot;t3.large&quot;</text>
     <text x="22" y="799" xml:space="preserve">  <tspan fill="#f85149">±</tspan> <tspan fill="#f0f6fc" font-weight="bold">aws_instance.legacy</tspan><tspan fill="#6e7681"> (replace (destroy then create))</tspan></text>
     <text x="22" y="837" xml:space="preserve">  <tspan fill="#3fb950">+</tspan> <tspan fill="#f0f6fc" font-weight="bold">aws_s3_bucket.assets</tspan><tspan fill="#6e7681"> (create)</tspan></text>
-    <text x="22" y="875" xml:space="preserve"><tspan fill="#6e7681">↳ permadiff --explain &lt;address&gt; shows the full canonicalisation reasoning and HCL fixes.</tspan></text>
+    <text x="22" y="875" xml:space="preserve"><tspan fill="#6e7681">↳ permadiff --explain &lt;address&gt; &lt;plan&gt; shows the full canonicalisation reasoning and HCL fixes.</tspan></text>
   </g>
 </svg>
