@@ -36,6 +36,9 @@ func TestMatchingPrecedence(t *testing.T) {
 		{"aws_route53_record", "name", "route53-name-normalization", false},
 		{"aws_lambda_function", "tags", "tags-empty-vs-null", false},
 		{"aws_instance", "vpc_security_group_ids", "aws-set-semantic-lists", false},
+		// subnets / availability_zones are deliberately NOT set-semantic (order can
+		// matter on some resources); they fall through to the generic fallback
+		{"aws_lb", "subnets", "generic-type-coercion", false},
 		// generic fallbacks pick up anything else on aws_* resources
 		{"aws_sfn_state_machine", "definition", "generic-type-coercion", false}, // first canonical "*" match; classifier tries next on no-op failure
 		// computed entries

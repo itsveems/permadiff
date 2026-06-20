@@ -288,10 +288,12 @@ patterns:
     confidence: medium
     why: >-
       tags_all is computed by merging the resource's tags with the provider's
-      default_tags. Several provider versions re-plan it as "(known after
-      apply)" on every run even when nothing changed — a long-standing
-      default_tags quirk. Medium confidence only: from one plan we cannot
-      prove the provider's default_tags block didn't actually change.
+      default_tags. The classic perpetual-diff churn — re-planning it as
+      "(known after apply)" every run with nothing changed — was a default_tags
+      bug in provider v3.38.0–v4.67.0, fixed in v5.0.0 (May 2023); narrow
+      computed-tags edge cases have still been reported on v5/v6. Medium
+      confidence only: from one plan we cannot prove the provider's default_tags
+      block didn't actually change.
     fix:
       summary: >-
         Upgrade hashicorp/aws — most default_tags perpetual-diff bugs are
@@ -413,12 +415,16 @@ patterns:
     title: Set-semantic list reordered
     match:
       resource_types: ["aws_*"]
+      # Only attributes that are TypeSet (order-insensitive) on essentially every
+      # resource exposing them. Deliberately EXCLUDES subnets and
+      # availability_zones: on some resources their order is significant (e.g.
+      # aws_lb subnet/AZ affinity), so equating a reorder there would be a false
+      # positive. Add a per-resource entry via --catalog where order truly does
+      # not matter.
       attributes:
         - security_groups
         - vpc_security_group_ids
         - subnet_ids
-        - subnets
-        - availability_zones
     canonicalizer: set_list
     confidence: high
     why: >-

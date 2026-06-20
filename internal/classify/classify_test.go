@@ -79,6 +79,8 @@ func TestClassification(t *testing.T) {
 		// 6. ECS task definitions
 		{fixture: "ecs.json", address: "aws_ecs_task_definition.noop", wantClass: ClassNoise, wantConf: catalog.High, noopAttrs: []string{"container_definitions", "revision", "arn"}},
 		{fixture: "ecs.json", address: "aws_ecs_task_definition.real", wantClass: ClassReal, realAttrs: []string{"container_definitions"}},
+		// container array order is significant: a pure container reorder must read as real
+		{fixture: "ecs.json", address: "aws_ecs_task_definition.container_reorder_real", wantClass: ClassReal, realAttrs: []string{"container_definitions"}},
 
 		// 7. Type coercion
 		{fixture: "misc.json", address: "aws_lb_target_group.coercion_noop", wantClass: ClassNoise, wantConf: catalog.High, noopAttrs: []string{"port"}},

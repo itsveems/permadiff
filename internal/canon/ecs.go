@@ -55,8 +55,9 @@ var keyedLastWinsLists = map[string]string{
 // environment values. Normalisations applied (all documented API behaviour):
 //
 //   - object key order / whitespace: insignificant (JSON)
-//   - containers sorted by name (registration order has no runtime meaning;
-//     container dependencies are explicit via dependsOn/links)
+//   - container array ORDER is preserved (treated as significant): the
+//     provider stores containers in the given order and a reorder is not
+//     provably a no-op, so only fields WITHIN each container are normalised
 //   - environment/secrets/mountPoints/volumesFrom/portMappings/ulimits/
 //     systemControls sorted canonically — except that keyed lists
 //     (environment/secrets/systemControls/ulimits) keep their order whenever
@@ -86,7 +87,7 @@ func ecsContainerDefinitions(before, after any, _ map[string]any) Result {
 		AfterCanon:  Pretty(na),
 	}
 	if res.Equal {
-		res.Detail = "after sorting containers and their set-valued fields, stringifying environment values, and dropping API-injected defaults, both definitions are identical"
+		res.Detail = "after normalising each container's set-valued fields, environment values, and API-injected defaults (container order preserved), both definitions are identical"
 	} else {
 		res.Detail = "definitions still differ after ECS canonicalisation — a real change"
 	}
@@ -127,7 +128,10 @@ func normalizeContainers(containers []any) []any {
 		}
 		out[i] = normalizeContainer(m)
 	}
-	return sortSliceCanonical(out)
+	// Container array order is preserved — a reordered container_definitions
+	// list is a real change (the provider stores containers in order, and we
+	// cannot prove a reorder is runtime-neutral).
+	return out
 }
 
 func normalizeContainer(c map[string]any) map[string]any {

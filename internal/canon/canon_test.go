@@ -433,11 +433,13 @@ func TestECSContainerDefinitions(t *testing.T) {
 			wantEqual: true,
 		},
 		{
-			name:      "container order swapped",
+			// The provider preserves container array order and we cannot prove a
+			// reorder is runtime-neutral, so a pure container swap is a real change.
+			name:      "REAL: container order swapped",
 			strategy:  "ecs_container_definitions",
 			before:    `[{"name":"app","image":"a:1"},{"name":"sidecar","image":"s:1"}]`,
 			after:     `[{"name":"sidecar","image":"s:1"},{"name":"app","image":"a:1"}]`,
-			wantEqual: true,
+			wantEqual: false,
 		},
 		{
 			name:      "REAL: image tag bumped",

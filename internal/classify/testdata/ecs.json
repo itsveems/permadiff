@@ -75,6 +75,43 @@
         "before_sensitive": {},
         "after_sensitive": {}
       }
+    },
+    {
+      "address": "aws_ecs_task_definition.container_reorder_real",
+      "mode": "managed",
+      "type": "aws_ecs_task_definition",
+      "name": "container_reorder_real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "arn": "arn:aws:ecs:eu-west-2:111122223333:task-definition/web:9",
+          "container_definitions": "[{\"cpu\":0,\"essential\":true,\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/app:1.0\",\"mountPoints\":[],\"name\":\"app\",\"portMappings\":[],\"systemControls\":[],\"volumesFrom\":[]},{\"cpu\":0,\"essential\":true,\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/logger:1.0\",\"mountPoints\":[],\"name\":\"logger\",\"portMappings\":[],\"systemControls\":[],\"volumesFrom\":[]}]",
+          "cpu": "256",
+          "family": "web",
+          "memory": "512",
+          "network_mode": "awsvpc",
+          "requires_compatibilities": ["FARGATE"],
+          "revision": 9,
+          "tags": null
+        },
+        "after": {
+          "container_definitions": "[{\"name\":\"logger\",\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/logger:1.0\"},{\"name\":\"app\",\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/app:1.0\"}]",
+          "cpu": "256",
+          "family": "web",
+          "memory": "512",
+          "network_mode": "awsvpc",
+          "requires_compatibilities": ["FARGATE"],
+          "tags": null
+        },
+        "after_unknown": {
+          "arn": true,
+          "arn_without_revision": true,
+          "revision": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
     }
   ]
 }
