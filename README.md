@@ -184,6 +184,28 @@ compiled into the binary; `--catalog` adds your own entries at runtime.
 - Reading `terraform show -json` output only — not state files, not raw
   `.tfplan` binaries, not HCL.
 
+## Project status
+
+permadiff is a side project, maintained in spare time on a best-effort basis.
+It's well-tested and deliberately conservative, but please calibrate
+expectations: there's no commercial support or SLA, and issues and pull
+requests may sit a while before I get to them. That's bandwidth, not neglect.
+
+Two things keep that from being a problem:
+
+- **You're rarely blocked on me.** Need a pattern it doesn't have yet? Put it in
+  your own YAML and pass `--catalog my-patterns.yaml` — it works immediately, no
+  fork and no waiting on a release.
+- **Contributing upstream is cheap.** A new pattern is usually just a catalog
+  entry plus two fixtures, no Go required (see
+  [Contributing a pattern](#contributing-a-pattern)). PRs in that shape are the
+  easiest to review and merge.
+
+The one report I'll always prioritise: a **real change shown as noise** (a false
+positive). That's the single thing this tool must never do — so if you hit one,
+open an issue with the plan snippet and I'll treat it as a bug, not a feature
+request.
+
 ## Contributing a pattern
 
 Most perma-diffs need **no Go code** — just YAML plus fixtures:
