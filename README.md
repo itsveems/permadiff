@@ -72,6 +72,9 @@ go install github.com/itsveems/permadiff/cmd/permadiff@latest
 
 (Or clone and `make build`. Single static binary, no runtime dependencies.)
 
+Requires Go 1.21+ to install or build, and reads `terraform show -json` plans from
+Terraform 1.x.
+
 ## Usage
 
 ```sh
@@ -87,6 +90,14 @@ permadiff --catalog my-patterns.yaml plan.json       # extra patterns (take prec
 
 `--explain` shows every pattern that was tried, the canonical form both sides
 reduce to, and the complete fix with HCL before/after snippets.
+
+## Exit codes
+
+`permadiff` is a reporting tool, not a gate: it exits `0` whenever it successfully
+analyses a plan — whether or not it finds perma-diffs or real changes — and
+non-zero only on an operational error (bad flags, an unreadable or unparseable
+plan, an unknown `--explain` address). It is safe to run in CI for visibility
+without failing the pipeline on its findings.
 
 ## How it decides — and why you can trust it
 
@@ -113,12 +124,15 @@ keep it honest:
    capped at medium no matter what the catalog says.
 
 A concrete example of how fine the line is: AWS lets a policy principal be
-written as `"*"` or `{"AWS": "*"}`, and for an `Allow` statement those are the
-same thing — a real perma-diff S3 produces for public buckets. But under a
-`Deny` they are *not*: `"*"` denies everyone, including anonymous requests,
-while `{"AWS": "*"}` denies only AWS account principals. So permadiff collapses
-that rewrite only for `Allow`, and reports the `Deny` version as a real change —
-the kind of asymmetry the "prove it or it's real" rule exists to catch.
+written as `"*"` or `{"AWS": "*"}`. AWS's docs call these *equivalent* for
+anonymous access — true for risk posture, since anyone can open an AWS account —
+but they match different request sets: `{"AWS": "*"}` only matches a request
+**signed by some AWS principal**. Under `Allow` that distinction is harmless
+(it's the rewrite S3 makes for public buckets); under `Deny` it bites — a
+statement switched from `"*"` to `{"AWS": "*"}` stops denying unsigned, anonymous
+requests. So permadiff collapses the two forms only for `Allow`, and reports the
+`Deny` version as a real change — the asymmetry the "prove it or it's real" rule
+exists to catch.
 
 It is fully **deterministic and offline**: rule-based against a YAML pattern
 catalog. No network calls, no telemetry.
