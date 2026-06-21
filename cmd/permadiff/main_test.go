@@ -107,6 +107,23 @@ func TestRunVersion(t *testing.T) {
 	}
 }
 
+func TestEffectiveVersion(t *testing.T) {
+	cases := []struct {
+		name, ldflags, buildInfo, want string
+	}{
+		{"ldflags wins over build info", "v0.1.0", "v9.9.9", "v0.1.0"},
+		{"go install of a tagged version", "dev", "v0.1.0", "v0.1.0"},
+		{"go install @latest pseudo-version", "dev", "v0.0.0-20260101000000-abcdef0", "v0.0.0-20260101000000-abcdef0"},
+		{"local build reports devel falls back", "dev", "(devel)", "dev"},
+		{"no build info version falls back", "dev", "", "dev"},
+	}
+	for _, c := range cases {
+		if got := effectiveVersion(c.ldflags, c.buildInfo); got != c.want {
+			t.Errorf("%s: effectiveVersion(%q, %q) = %q, want %q", c.name, c.ldflags, c.buildInfo, got, c.want)
+		}
+	}
+}
+
 // FuzzRun feeds arbitrary bytes through the whole pipeline (parse -> classify
 // -> render) the way a `terraform show -json` pipe would. The contract is
 // simple: permadiff must never panic on any input — it returns a report or an

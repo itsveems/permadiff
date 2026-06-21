@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime/debug"
 
 	"github.com/itsveems/permadiff/internal/catalog"
 	"github.com/itsveems/permadiff/internal/classify"
@@ -61,6 +62,29 @@ func isCharDevice(f *os.File) bool {
 	return info.Mode()&os.ModeCharDevice != 0
 }
 
+// resolveVersion returns the best available version string. `make build` and
+// release binaries inject `version` via -ldflags; `go install`ed binaries don't
+// run the Makefile, so for those we fall back to the module version Go records in
+// the build info (a tag like v0.1.0, or a v0.0.0-<timestamp>-<hash> pseudo-version).
+func resolveVersion() string {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		return effectiveVersion(version, info.Main.Version)
+	}
+	return version
+}
+
+// effectiveVersion prefers the ldflags-injected version, falling back to a usable
+// module version from build info. Kept pure for testing.
+func effectiveVersion(ldflags, buildInfo string) string {
+	if ldflags != "dev" {
+		return ldflags
+	}
+	if buildInfo != "" && buildInfo != "(devel)" {
+		return buildInfo
+	}
+	return ldflags
+}
+
 func run(args []string, stdin io.Reader, stdout io.Writer, stdoutTTY, stdinTTY bool) error {
 	fs := flag.NewFlagSet("permadiff", flag.ContinueOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
@@ -76,7 +100,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer, stdoutTTY, stdinTTY b
 		return err
 	}
 	if *showVersion {
-		fmt.Fprintf(stdout, "permadiff %s\n", version)
+		fmt.Fprintf(stdout, "permadiff %s\n", resolveVersion())
 		return nil
 	}
 
