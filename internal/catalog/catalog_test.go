@@ -44,6 +44,7 @@ func TestMatchingPrecedence(t *testing.T) {
 		// computed entries
 		{"aws_instance", "tags_all", "tags-all-computed-churn", true},
 		{"aws_ecs_task_definition", "revision", "ecs-task-definition-computed", true},
+		{"aws_batch_job_definition", "revision", "batch-job-definition-computed", true},
 		{"aws_iam_role", "arn", "generic-computed-churn", true},
 	}
 	for _, tc := range cases {

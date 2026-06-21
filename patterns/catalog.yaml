@@ -368,6 +368,26 @@ patterns:
         these disappear with it.
 
   # ──────────────────────────────────────────────────────────────────────────
+  # 6b. AWS Batch job definitions (revision/arn computed, like ECS)
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: batch-job-definition-computed
+    title: Batch job definition computed fields
+    kind: computed
+    match:
+      resource_types: [aws_batch_job_definition]
+      attributes: [revision, arn]
+    confidence: high
+    why: >-
+      revision and arn are computed by AWS Batch when a job definition is
+      (re)registered — exactly like an ECS task definition. They flip to
+      "(known after apply)" whenever any update is planned; they are a
+      consequence of the plan, not an independent change.
+    fix:
+      summary: >-
+        Nothing to fix here — resolve whatever attribute is driving the update
+        (often container_properties) and these disappear with it.
+
+  # ──────────────────────────────────────────────────────────────────────────
   # 8. Route 53 name normalisation
   # ──────────────────────────────────────────────────────────────────────────
   - id: route53-name-normalization

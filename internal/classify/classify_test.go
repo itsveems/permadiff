@@ -82,6 +82,11 @@ func TestClassification(t *testing.T) {
 		// container array order is significant: a pure container reorder must read as real
 		{fixture: "ecs.json", address: "aws_ecs_task_definition.container_reorder_real", wantClass: ClassReal, realAttrs: []string{"container_definitions"}},
 
+		// AWS Batch job definitions: revision/arn are computed like ECS.
+		// computed-only flip → capped at medium; a real container change stays real.
+		{fixture: "batch.json", address: "aws_batch_job_definition.computed_only", wantClass: ClassLikelyNoise, wantConf: catalog.Medium, noopAttrs: []string{"revision", "arn"}},
+		{fixture: "batch.json", address: "aws_batch_job_definition.real", wantClass: ClassReal, realAttrs: []string{"container_properties"}},
+
 		// 7. Type coercion
 		{fixture: "misc.json", address: "aws_lb_target_group.coercion_noop", wantClass: ClassNoise, wantConf: catalog.High, noopAttrs: []string{"port"}},
 		{fixture: "misc.json", address: "aws_lb_target_group.coercion_real", wantClass: ClassReal, realAttrs: []string{"port"}},

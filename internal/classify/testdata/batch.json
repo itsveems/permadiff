@@ -1,0 +1,70 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.7.5",
+  "resource_changes": [
+    {
+      "address": "aws_batch_job_definition.computed_only",
+      "mode": "managed",
+      "type": "aws_batch_job_definition",
+      "name": "computed_only",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "name": "scanner",
+          "type": "container",
+          "arn": "arn:aws:batch:eu-west-2:111122223333:job-definition/scanner:5",
+          "revision": 5,
+          "container_properties": "{\"command\":[\"scan\"],\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/scanner:1.0\",\"memory\":2048,\"vcpus\":1}",
+          "platform_capabilities": ["FARGATE"],
+          "tags": null
+        },
+        "after": {
+          "name": "scanner",
+          "type": "container",
+          "container_properties": "{\"command\":[\"scan\"],\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/scanner:1.0\",\"memory\":2048,\"vcpus\":1}",
+          "platform_capabilities": ["FARGATE"],
+          "tags": null
+        },
+        "after_unknown": {
+          "arn": true,
+          "revision": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_batch_job_definition.real",
+      "mode": "managed",
+      "type": "aws_batch_job_definition",
+      "name": "real",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "name": "scanner",
+          "type": "container",
+          "arn": "arn:aws:batch:eu-west-2:111122223333:job-definition/scanner:5",
+          "revision": 5,
+          "container_properties": "{\"command\":[\"scan\"],\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/scanner:1.0\",\"memory\":2048,\"vcpus\":1}",
+          "platform_capabilities": ["FARGATE"],
+          "tags": null
+        },
+        "after": {
+          "name": "scanner",
+          "type": "container",
+          "container_properties": "{\"command\":[\"scan\"],\"image\":\"111122223333.dkr.ecr.eu-west-2.amazonaws.com/scanner:2.0\",\"memory\":2048,\"vcpus\":1}",
+          "platform_capabilities": ["FARGATE"],
+          "tags": null
+        },
+        "after_unknown": {
+          "arn": true,
+          "revision": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

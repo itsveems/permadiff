@@ -156,6 +156,7 @@ exists to replace. The tool suggests; it never edits your files.
 | 10 | Set-semantic list attributes | `aws-set-semantic-lists` | `subnet_ids` / `security_groups` reordered |
 | 11 | Computed-field churn | `generic-computed-churn` | `arn`/`id` → "(known after apply)" with nothing else changed |
 | 12 | JSON-document attributes (curated) | `generic-json-attribute` | `definition`, `template_body`, `dashboard_body`, `event_pattern` formatting |
+| 13 | AWS Batch job definitions | `batch-job-definition-computed` | `revision`/`arn` → "(known after apply)" on re-register, like ECS |
 
 Pattern 12 deliberately applies only to a curated allowlist of attributes
 where the service stores *parsed* JSON. Verbatim-bytes attributes
@@ -170,7 +171,7 @@ compiled into the binary; `--catalog` adds your own entries at runtime.
 
 - **AWS provider only (v1).** Other providers' resources are listed as real
   changes, untouched.
-- **Seed catalog coverage.** Twelve well-documented pattern families (17
+- **Seed catalog coverage.** Thirteen well-documented pattern families (18
   catalog entries). Noise outside the catalog is reported as a real change —
   conservative by design.
 - **Conservative by design.** It will miss noise (false negatives) rather than
